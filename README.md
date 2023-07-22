@@ -49,8 +49,8 @@ clean:
 	@echo '[UpTickPro] Clean ------'
 	rm -rf work *.elf *.disass *.log *.dump *.ld *.S *.ini
 
-## Challenge Level 1
-### Challenge1 logical
+## Challenge_level_1
+### Challenge1_logical
 Attempting to compile test.S with riscv32-unknown-elf-gcc results in failure due to multiple instances of the same error. 
 
 [1] test.S:15855: Error: illegal operands `and s7,ra,z4'
@@ -61,3 +61,60 @@ Instruction [1] has an illegal operand 'z4' which is a nonexistant register in t
 Instruction [2] uses the 'andi' sintruction which expects a destination register, source register, and a 12-bit immediate that would be sign-extended and used in the following ALU operation. [2] indicates two source registers instead of providing immediate data which is illegal.
 
 Again, both of these instances could be present due to human error during insertion into test.S. Since both instructions are present in other parts of the test, and I'm not sure what register and immediate data are desired for instructions [1] and [2] respectively, I will remove them for now.
+
+### Challenge2_loop
+While the code compiles, spike simulation reveals that there is some logic causing the simulation to run for a long time before spike reports 
+
+*** FAILED *** (tohost = 669)
+make: *** [Makefile:11: spike] Error 157
+
+Inspecting the code the desired functionality seems clear:
+1. Initialize pointer to .data section which contains test inputs and expected results.
+2. Increment pointer (t0)
+3. Load inputs and test the result of addition against the stored expected value.
+	a. If the two match, resume testing be returning to the start of the loop.
+	b. Else, consider the test failed.
+
+The problem with this logic is that the loop continues as an addition of two inputs located at (t0) and 4(t0) matches that at 8(t0).
+The program truly starts running away when t0 actually begins to point past the initialized  cases within RVTEST_DATA.
+0 + 0 = 0 is constantly tested, and the loop continues.
+
+In order to fix this, an additional counter can be utilized to keep track of the number of tests conducted.
+t5 was actually introduced in the original source, holding a value of 3 for the number of test cases, it's just never utilized for branching logic.
+
+Therefore I changed this:
+```asm
+  la t0, test_cases
+  li t5, 3
+
+loop:
+  lw t1, (t0)
+  lw t2, 4(t0)
+  lw t3, 8(t0)
+  add t4, t1, t2
+  addi t0, t0, 12
+  beq t3, t4, loop        # check if sum is correct
+  j fail
+
+test_end:
+```
+To **this**:
+  ```asm
+    la t0, test_cases 	# Initialize data ptr
+    li t5, 3 			# Initialize test counter
+  
+  loop:   
+	beqz t5, test_end	# for t5 tests
+	lw t1, (t0)			# load input1
+	lw t2, 4(t0)		# load input2
+	lw t3, 8(t0)		# load checksum
+	add t4, t1, t2		# compute sum
+	addi t0, t0, 12		# increment pointer
+	addi t5, t5, -1		# decrement test count
+	beq t3, t4, loop        # check if sum is correct
+	j fail
+
+test_end:
+  ```
+
+
