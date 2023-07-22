@@ -14,14 +14,14 @@ RVTEST_CODE_BEGIN
   li t5, 3
 
 loop:
-  beqz t5, test_end 
-	lw t1, (t0)
-  lw t2, 4(t0)
-  lw t3, 8(t0)
-  add t4, t1, t2
-  addi t0, t0, 12
-  addi t5, t5, -1
-  beq t3, t4, loop        # check if sum is correct
+  beqz t5, test_end	# for t5 tests
+  lw t1, (t0)			  # load input1
+  lw t2, 4(t0)		  # load input2
+  lw t3, 8(t0)		  # load checksum
+  add t4, t1, t2		# compute sum
+  addi t0, t0, 12		# increment pointer
+  addi t5, t5, -1		# decrement test count
+  beq t3, t4, loop  # check if sum is correct
   j fail
 
 test_end:
