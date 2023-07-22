@@ -48,3 +48,16 @@ spike: compile
 clean:
 	@echo '[UpTickPro] Clean ------'
 	rm -rf work *.elf *.disass *.log *.dump *.ld *.S *.ini
+
+## Challenge Level 1
+### Challenge1 logical
+Attempting to compile test.S with riscv32-unknown-elf-gcc results in failure due to multiple instances of the same error. 
+
+[1] test.S:15855: Error: illegal operands `and s7,ra,z4'
+[2] test.S:25584: Error: illegal operands `andi s5,t1,s0'
+
+Instruction [1] has an illegal operand 'z4' which is a nonexistant register in the ISA. This could very well have been a mistake and/or mistyped.
+
+Instruction [2] uses the 'andi' sintruction which expects a destination register, source register, and a 12-bit immediate that would be sign-extended and used in the following ALU operation. [2] indicates two source registers instead of providing immediate data which is illegal.
+
+Again, both of these instances could be present due to human error during insertion into test.S. Since both instructions are present in other parts of the test, and I'm not sure what register and immediate data are desired for instructions [1] and [2] respectively, I will remove them for now.
