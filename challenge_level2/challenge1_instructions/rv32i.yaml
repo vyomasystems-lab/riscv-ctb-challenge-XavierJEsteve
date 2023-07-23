@@ -43,7 +43,7 @@ isa-instruction-distribution:
   rel_rv32i.compute: 10
   rel_rv32i.data: 10
   rel_rv32i.fence: 10
-  rel_rv64i.compute: 0
+  rel_rv`i.compute: 0
   rel_rv64i.data: 0
   rel_rv32i.zba: 0
   rel_rv64i.zba: 0
@@ -63,7 +63,7 @@ isa-instruction-distribution:
   rel_rv32i.zbt: 0
   rel_rv64i.zbt: 0
   rel_rv32m: 0
-  rel_rv64m: 10
+  rel_rv64m: 0
   rel_rv32a: 0
   rel_rv64a: 0
   rel_rv32f: 0

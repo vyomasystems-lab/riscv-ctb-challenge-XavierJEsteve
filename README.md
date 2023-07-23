@@ -142,6 +142,13 @@ mtvec_handler: # Arrived here from <trap_vector>
 ```
 With this change, the execution carries on from TEST_PASSFAIL defined in riscv_test.h.
 
+## Challenge_level_2
+### Challenge1_instructions
 
+Attempting to use make would reveal in issue in compiling the generated test. There are many instructions with the following:
 
+Error: unrecognized opcode 'rem/mul/div/etc.'
 
+The unrecognized opcodes all appear to be a part of the M extension for multiplication and division operations. Since our target is to test RV32I funcionality, this probably needs to be fixed in the rv32i.yaml (the name also hints at an intention to use RV32I).
+
+Investigating rv32i.yaml shows that  within 'isa-instruction-distribution', 'rel_rv64m' is set to 10, equal to all other tested instructions but notable not 0 and not of the base RV32I. Changing this value to 0 results in proper generation -> compilation -> disassembly.
