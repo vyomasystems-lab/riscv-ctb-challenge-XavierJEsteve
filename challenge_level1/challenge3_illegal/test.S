@@ -17,12 +17,13 @@ illegal_instruction:
 
   .align 8
   .global mtvec_handler
-mtvec_handler:
-  li t1, CAUSE_ILLEGAL_INSTRUCTION
-  csrr t0, mcause
-  bne t0, t1, fail
-  csrr t0, mepc
-
+mtvec_handler: # Arrived here from <trap_vector>
+  li t1, CAUSE_ILLEGAL_INSTRUCTION  # Since we know it's an illegal instruction we save that code to t1
+  csrr t0, mcause                   # check the code that got us here
+  bne t0, t1, fail                  # If these aren't equal, we fail
+  csrr t0, mepc                     # Check mepc, it holds the PC of illegal instruction
+  addi t0, t0, 8                    # +4 for 'j fail', +8 for TEST_PASSFAIL
+  csrw mepc, t0
   mret
 
 RVTEST_CODE_END

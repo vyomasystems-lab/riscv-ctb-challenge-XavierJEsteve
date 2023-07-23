@@ -117,4 +117,31 @@ To **this**:
 test_end:
   ```
 
+### Challenge2_loop
+In test.S, there is an illegal instruction of all zeros:
+
+**Execution from spike --isa=rv32i -d test.elf**
+core   0: 0x800001a0 (0x00000000) c.unimp
+core   0: exception trap_illegal_instruction, epc 0x800001a0
+core   0:           tval 0x00000000
+
+This leads to the processor pointing the pc to the trap_vector at 0x80000004.
+Within this trap vector, there are checks to test for User, Supervisor, and Machine ECALLs.
+Once it is determined the exception is of another nature, we move to handle_exception.
+Within handle_exception, the value of mepc, the value for PC at the time of exception is loaded into a temp register, which is then populated with this sum in addition to the number of bytes that should be skipped in order to move past the exception. This seems valid since the instruction should not be executed again.
+
+```asm
+mtvec_handler: # Arrived here from <trap_vector>
+  li t1, CAUSE_ILLEGAL_INSTRUCTION  # Since we know it's an illegal instruction we save that code to t1
+  csrr t0, mcause                   # check the code that got us here
+  bne t0, t1, fail                  # If these aren't equal, we fail
+  csrr t0, mepc                     # Check mepc, it holds the PC of illegal instruction
+  addi t0, t0, 8                    # +4 for 'j fail', +8 for TEST_PASSFAIL
+  csrw mepc, t0
+  mret
+```
+With this change, the execution carries on from TEST_PASSFAIL defined in riscv_test.h.
+
+
+
 
