@@ -117,7 +117,7 @@ To **this**:
 test_end:
   ```
 
-### Challenge2_loop
+### Challenge2_illegal
 In test.S, there is an illegal instruction of all zeros:
 
 **Execution from spike --isa=rv32i -d test.elf**
