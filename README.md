@@ -145,6 +145,9 @@ With this change, the execution carries on from TEST_PASSFAIL defined in riscv_t
 ## Challenge_level_2
 ### Challenge1_instructions
 
+*TODO: Introduce AAPG tools*
+
+
 Attempting to use make would reveal in issue in compiling the generated test. There are many instructions with the following:
 
 Error: unrecognized opcode 'rem/mul/div/etc.'
@@ -152,3 +155,23 @@ Error: unrecognized opcode 'rem/mul/div/etc.'
 The unrecognized opcodes all appear to be a part of the M extension for multiplication and division operations. Since our target is to test RV32I funcionality, this probably needs to be fixed in the rv32i.yaml (the name also hints at an intention to use RV32I).
 
 Investigating rv32i.yaml shows that  within 'isa-instruction-distribution', 'rel_rv64m' is set to 10, equal to all other tested instructions but notable not 0 and not of the base RV32I. Changing this value to 0 results in proper generation -> compilation -> disassembly.
+
+### Challenge2_exceptions
+
+The AAPG tool makes it possible to test a roughly definable distribution of rv[32|64]g instructions and exceptions. In order to generate ~10 illegal instruction exception calls I created a custom configuration file 'rv32i.yaml' focusing on the following groups/variables:
+
+customer_trap_handler: true
+
+isa-instruction-distribution
+  rel_sys.csr: 1
+  rel_rv32i.ctrl: 1
+  rel_rv32i.compute: 20
+  rel_rv32i.data: 20
+
+csr-sections:
+  sections: 0x000, 0x200:0x202, 0xff0:0xfff
+  I utilized a range from an example demo. A usefull list of CSRs can be found (here)[https://five-embeddev.com/quickref/csrs.html]. There just needs to be some set so that the necessary rel_sys.csr instructions have something to work with. AAPG automatically ignores the xtvec, xepc, xcause and xstatus registers.
+
+As a result, generated tests produce a variable 10-30 exceptions per simulation in spike. Spike simulations however seem to be caught in a loop about 10% of the time. Honestly the lack of explicit documentation and deterministic behavior calls some aspects of the aapg tool into question, but later review of the code base could prove usefule if I have time to revisit this challenge later.
+
+## Challenge_level_3
